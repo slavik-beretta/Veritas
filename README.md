@@ -1,54 +1,43 @@
 # Veritas
 
-Veritas is a multi-agent AI system built around a simple principle: tell the truth, or say you do not know.
+Veritas is a multi-agent AI system designed around one rule: tell the truth, or say you do not know.
 
-It is intentionally direct, skeptical, and unflattering when necessary. It is not a sycophant. It does not invent certainty. It calls out weak assumptions, missing evidence, and bad decisions.
+It is direct. It is skeptical. It does not flatter. It does not fake certainty. If the idea is weak, it says so. If the evidence is thin, it says so. If the answer is uncertain, it says so.
 
-This repo contains a working starter implementation with:
-- a direct command-line interface (CLI)
+This repository contains a working multi-agent system with:
+- a command-line interface
 - a minimal web UI
-- multi-agent orchestration
-- support for cloud LLMs and an offline local-only mode
+- cloud LLM support
+- a local/offline mode
 
-## What Veritas does
+## The idea
 
-Veritas runs a pipeline of specialized agents:
+Veritas runs a set of specialized agents in sequence:
 
 1. Planner
    - breaks the problem into tasks
-   - identifies risks and missing facts
+   - identifies missing facts and obvious risks
 2. Researcher
-   - gathers relevant evidence
-   - distinguishes facts from guesses
+   - gathers useful evidence
+   - separates facts from guesses
 3. Verifier
-   - checks claims for consistency and logic
+   - checks consistency and logic
 4. Skeptic
-   - attacks the plan from the weak side
-   - exposes blind spots
+   - attacks the idea and exposes weak assumptions
 5. Writer
-   - synthesizes the final answer into a clear, actionable response
+   - produces the final answer in a direct, useful format
 
-The result is a blunt but useful answer: direct, honest, not overconfident.
+The result is a blunt but useful answer. Not fluff. Not fake confidence. Just the truth.
 
-## Why the name Veritas
+## Why "Veritas"
 
-Veritas means truth in Latin. That is the spirit of the project:
+Veritas means truth in Latin. The project is intentionally honest:
 - no fake praise
-- no false certainty
-- no shallow reassurance
-- no pretending to know what is not known
+- no fake certainty
+- no comforting nonsense
+- no pretending to know things you do not know
 
-## Repository structure
-
-- `veritas/` — agent system and core logic
-- `cli.py` — terminal interface
-- `web.py` — Flask web app for cloud-based usage
-- `requirements.txt` — Python dependencies for cloud mode
-- `.env.example` — environment variables
-- `README.md` — project documentation
-- `local_cli.py` and `local_web.py` — offline local-model version available on the `local-llm` branch
-
-## Quick start: cloud version
+## Cloud version: how to run
 
 1. Clone the repo
 
@@ -70,33 +59,35 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Copy the example env file and add your keys
+4. Copy the example environment file
 
 ```bash
 cp .env.example .env
 ```
 
-Then set one of these in your shell or `.env`:
+5. Add your API key
+
+For Anthropic:
 
 ```bash
 export VERITAS_PROVIDER=anthropic
 export ANTHROPIC_API_KEY=your_key_here
 ```
 
-or
+For OpenAI:
 
 ```bash
 export VERITAS_PROVIDER=openai
 export OPENAI_API_KEY=your_key_here
 ```
 
-5. Run the CLI
+6. Run the CLI
 
 ```bash
 python cli.py "Should I pivot my startup into AI?"
 ```
 
-6. Run the web UI
+7. Or run the web app
 
 ```bash
 python web.py
@@ -108,11 +99,9 @@ Then open:
 http://localhost:5000
 ```
 
-## Quick start: local/offline version
+## Local/offline version: how to run
 
-The offline model version lives on the `local-llm` branch.
-
-You need Ollama installed locally.
+This version is on the `local-llm` branch.
 
 1. Install Ollama
    - https://ollama.com/
@@ -144,7 +133,7 @@ pip install -r requirements-local.txt
 python local_cli.py "Is this idea worth pursuing?"
 ```
 
-6. Run the local web UI
+6. Or run the local web app
 
 ```bash
 python local_web.py
@@ -156,86 +145,53 @@ Then open:
 http://127.0.0.1:5001
 ```
 
-## Example usage
+## Good questions to ask Veritas
 
-### CLI
+Use direct questions. This system works best when you want a real answer.
 
-```bash
-python cli.py "How should I evaluate this startup idea?"
-```
-
-### Web UI
-
-Open the app and type a question like:
-- Is this product idea real?
-- Should I hire before I validate?
-- What are the biggest risks in this plan?
-- Is this strategy likely to work?
-
-## Environment variables
-
-### Cloud version
-
-```bash
-VERITAS_PROVIDER=anthropic
-VERITAS_MODEL=claude-3-5-sonnet-20241022
-VERITAS_TEMPERATURE=0.2
-VERITAS_MAX_TOKENS=1500
-ANTHROPIC_API_KEY=...
-```
-
-or
-
-```bash
-VERITAS_PROVIDER=openai
-VERITAS_MODEL=gpt-4o-mini
-VERITAS_TEMPERATURE=0.2
-VERITAS_MAX_TOKENS=1500
-OPENAI_API_KEY=...
-```
-
-### Local version
-
-```bash
-VERITAS_LOCAL_MODEL=llama3.1:8b
-OLLAMA_HOST=http://127.0.0.1:11434
-VERITAS_TEMPERATURE=0.2
-VERITAS_MAX_TOKENS=1200
-```
-
-## How to use it well
-
-Ask direct questions. Veritas works best when you want a real answer, not a comforting one.
-
-Good prompts:
+Examples:
 - Should I launch this product now?
 - What is the biggest risk in this plan?
 - Is this business model credible?
+- What assumptions am I relying on?
 - What would make this fail?
-- What are the assumptions I am relying on?
+- Is this team structure realistic?
 
-Bad prompts:
+## What not to ask
+
+Avoid vague or emotional prompts like:
 - Tell me I am doing great
-- Give me a motivational answer
-- Be vague and positive
+- Be encouraging
+- Make this sound good
 
-Veritas is designed for honesty. If evidence is weak, it says so. If the answer is uncertain, it says so.
+Veritas is not here to flatter you. It is here to help you think better.
+
+## Repo layout
+
+- `veritas/` — core logic and agent classes
+- `cli.py` — cloud CLI
+- `web.py` — cloud web UI
+- `local_cli.py` — local/offline CLI
+- `local_web.py` — local/offline web UI
+- `requirements.txt` — cloud dependencies
+- `requirements-local.txt` — local/offline dependencies
+- `README.md` — main setup guide
+- `LOCAL.md` — local-only quick guide
+- `.env.example` — environment template
 
 ## Philosophy
 
-Veritas is not trying to impress you.
-It is trying to help you make better decisions.
+Veritas is built on a single idea:
 
-If the idea is weak, it will say the idea is weak.
-If the facts are missing, it will say the facts are missing.
-If the path is uncertain, it will say the path is uncertain.
+Truth is more useful than comfort.
+
+If the answer is uncertain, it says so.
+If the evidence is weak, it says so.
+If the plan is bad, it says so.
+If the idea is good, it explains why.
 
 That is the point.
 
 ## License
 
 MIT
-
-## Author
-
-slavik-beretta
