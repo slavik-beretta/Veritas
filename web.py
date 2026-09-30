@@ -1,124 +1,64 @@
-#!/usr/bin/env python3
-"""Command-line interface for Veritas."""
+"""Flask web interface for Veritas."""
 
-import sys
-import argparse
+import os
+import json
+from flask import Flask, render_template, request, jsonify
 from veritas.core import VeritasOrchestrator, VeritasConfig, TruthfulnessError
 
-
-def print_section(title: str):
-    """Print a section header."""
-    print(f"\n{'='*70}")
-    print(f"  {title}")
-    print(f"{'='*70}")
+app = Flask(__name__, template_folder="templates", static_folder="templates")
 
 
-def print_agent_output(agent_name: str, output: str):
-    """Print output from an agent."""
-    print(f"\n[{agent_name.upper()}]")
-    print("-" * 70)
-    print(output)
+@app.route("/", methods=["GET"])
+def index():
+    """Serve the web UI."""
+    return render_template("index.html")
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Veritas: Direct, honest, and skeptical multi-agent AI.",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  python cli.py "Should I pivot my startup?"
-  python cli.py --verbose "What are the risks of AI agents?"
-  python cli.py --show-all "How do I scale a team?"
-        """,
-    )
-    parser.add_argument(
-        "query",
-        nargs="?",
-        help="Query to ask Veritas",
-    )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Show agent execution as it happens",
-    )
-    parser.add_argument(
-        "--show-all",
-        action="store_true",
-        help="Show output from all agents, not just final answer",
-    )
-    parser.add_argument(
-        "--provider",
-        choices=["anthropic", "openai"],
-        help="LLM provider (overrides env var)",
-    )
-    parser.add_argument(
-        "--model",
-        help="Model name (overrides env var)",
-    )
-
-    args = parser.parse_args()
-
-    # Get query
-    if args.query:
-        query = args.query
-    else:
-        print("\nVeritas — Direct. Honest. Skeptical.")
-        print("-" * 70)
-        try:
-            query = input("Ask Veritas: ").strip()
-        except KeyboardInterrupt:
-            print("\n\nInterrupted.")
-            sys.exit(0)
-
-    if not query:
-        print("Error: No query provided.")
-        sys.exit(1)
-
-    # Setup config
+@app.route("/api/query", methods=["POST"])
+def query():
+    """Process a query through Veritas."""
     try:
+        data = request.get_json()
+        if not data or "query" not in data:
+            return jsonify({"error": "No query provided"}), 400
+
+        user_query = data["query"].strip()
+        show_all = data.get("show_all", False)
+
+        if not user_query:
+            return jsonify({"error": "Query cannot be empty"}), 400
+
+        # Load config and run Veritas
         config = VeritasConfig.from_env()
-        if args.provider:
-            config.provider = args.provider
-        if args.model:
-            config.model = args.model
-
-        print("\nVeritas — Direct. Honest. Skeptical.")
-        print("-" * 70)
-        if args.verbose:
-            print(f"Query: {query}")
-            print(f"Provider: {config.provider}")
-            print(f"Model: {config.model}")
-
         orchestrator = VeritasOrchestrator(config)
-        result = orchestrator.run(query, verbose=args.verbose)
+        result = orchestrator.run(user_query, verbose=False)
 
-        if args.show_all:
-            print_agent_output("Plan", result["plan"])
-            print_agent_output("Research", result["evidence"])
-            print_agent_output("Verification", result["verification"])
-            print_agent_output("Skeptic", result["critique"])
+        response = {
+            "query": user_query,
+            "answer": result["answer"],
+        }
 
-        print_section("VERITAS ANSWER")
-        print(result["answer"])
-        print()
+        if show_all:
+            response["details"] = {
+                "plan": result["plan"],
+                "research": result["evidence"],
+                "verification": result["verification"],
+                "skeptic": result["critique"],
+            }
+
+        return jsonify(response), 200
 
     except TruthfulnessError as e:
-        print(f"\nError: {e}")
-        print("\nMake sure you have:")
-        print("1. Installed dependencies: pip install -r requirements.txt")
-        print("2. Set API keys in .env file (copy .env.example first)")
-        print("3. Run: cp .env.example .env")
-        sys.exit(1)
-    except KeyboardInterrupt:
-        print("\n\nInterrupted.")
-        sys.exit(0)
+        return jsonify({"error": f"Configuration error: {str(e)}"}), 500
     except Exception as e:
-        print(f"\nUnexpected error: {e}")
-        import traceback
+        return jsonify({"error": f"Error: {str(e)}"}), 500
 
-        traceback.print_exc()
-        sys.exit(1)
+
+@app.route("/health", methods=["GET"])
+def health():
+    """Health check endpoint."""
+    return jsonify({"status": "ok"}), 200
 
 
 if __name__ == "__main__":
-    main()
+    app.run(debug=False, host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
