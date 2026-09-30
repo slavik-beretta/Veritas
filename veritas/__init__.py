@@ -1,61 +1,17 @@
-# Environment
-.env
-.env.local
-.env.*.local
+# Veritas: Truth-first multi-agent AI
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+from veritas.config import VeritasConfig
+from veritas.core import LLMClient, VeritasOrchestrator
+from veritas.agents import PlannerAgent, ResearchAgent, VerifierAgent, SkepticAgent, WriterAgent
 
-# Virtual environments
-venv/
-ENV/
-env/
-.venv
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Flask
-instance/
-.webassets-cache
-
-# Logs
-*.log
-
-# Node
-node_modules/
-
-# OS
-Thumbs.db
-
-# Test artifacts
-.coverage
-.pytest_cache/
-
-# Build outputs
-site/
-htmlcov/
+__version__ = "0.2.0"
+__all__ = [
+    "VeritasConfig",
+    "LLMClient",
+    "VeritasOrchestrator",
+    "PlannerAgent",
+    "ResearchAgent",
+    "VerifierAgent",
+    "SkepticAgent",
+    "WriterAgent",
+]
