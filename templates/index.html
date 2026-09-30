@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+"""Web UI for Veritas using Flask."""
+
+import os
+import json
+from flask import Flask, render_template, request, jsonify
+from veritas.core import VeritasOrchestrator, VeritasConfig, TruthfulnessError
+
+app = Flask(__name__)
+app.config["JSON_SORT_KEYS"] = False
+
+try:
+    config = VeritasConfig.from_env()
+    orchestrator = VeritasOrchestrator(config)
+except TruthfulnessError as e:
+    orchestrator = None
+    error_message = str(e)
+
+
+@app.route("/")
+def index():
+    """Serve the main page."""
+    if orchestrator is None:
+        return (
+            f"""<html><body style="font-family: sans-serif; margin: 40px;">
+        <h1>Veritas — Configuration Error</h1>
+        <p><strong>Error:</strong> {error_message}</p>
+        <p>Make sure you have:</p>
+        <ol>
+            <li>Installed dependencies: <code>pip install -r requirements.txt</code></li>
+            <li>Created <code>.env</code> file: <code>cp .env.example .env</code></li>
+            <li>Set your API keys in <code>.env</code></li>
+        </ol>
+        </body></html>""",
+            500,
+        )
+    return render_template("index.html")
+
+
+@app.route("/api/query", methods=["POST"])
+def api_query():
+    """Handle a query to Veritas."""
+    if orchestrator is None:
+        return jsonify({"error": error_message}), 500
+
+    data = request.get_json()
+    query = data.get("query", "").strip()
+    show_all = data.get("show_all", False)
+
+    if not query:
+        return jsonify({"error": "Query cannot be empty"}), 400
+
+    try:
+        result = orchestrator.run(query, verbose=False)
+
+        response = {
+            "query": result["query"],
+            "answer": result["answer"],
+            "status": "success",
+        }
+
+        if show_all:
+            response["details"] = {
+                "plan": result["plan"],
+                "research": result["evidence"],
+                "verification": result["verification"],
+                "skeptic": result["critique"],
+            }
+
+        return jsonify(response)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/config", methods=["GET"])
+def api_config():
+    """Get current configuration."""
+    if orchestrator is None:
+        return jsonify({"error": error_message}), 500
+
+    return jsonify(
+        {
+            "provider": config.provider,
+            "model": config.model,
+            "temperature": config.temperature,
+            "max_tokens": config.max_tokens,
+        }
+    )
+
+
+if __name__ == "__main__":
+    print("\nVeritas Web UI")
+    print("-" * 70)
+    print("Starting server at http://localhost:5000")
+    print("Press Ctrl+C to stop.\n")
+    app.run(debug=True, host="localhost", port=5000)
